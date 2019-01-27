@@ -9,4 +9,4 @@ jobs:
     working_directory: /go/src/github.com/kontotto/mystery
     steps:
       - checkout
-      - run: go test -v
+      - run: go test -v ./...
