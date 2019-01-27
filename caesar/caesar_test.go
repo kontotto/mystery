@@ -7,21 +7,38 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-func TestClassify(t *testing.T) {
-	t.Run("should classify for alphabet", func(t *testing.T) {
-		want := AlphabetType
-		got := classify('a')
+func TestCaesar(t *testing.T) {
+	t.Run("should 1 forwarder", func(t *testing.T) {
+		want := "aAあアがぱガパらラ"
+		got, err := Caesar("zZんンぼぽボポょョ", 1)
+
+		if err != nil {
+			t.Fatal(err)
+		}
 
 		if !cmp.Equal(want, got) {
 			t.Fatalf("want: %#v, got: %#v", want, got)
 		}
 	})
 
-	t.Run("should not for kanji", func(t *testing.T) {
-		want := Undefined
-		got := classify('心')
+	t.Run("should 1 backwarder", func(t *testing.T) {
+		want := "zZんンぼぽボポんン"
+		got, err := Caesar("aAあアがぱガパぁァ", -1)
+
+		if err != nil {
+			t.Fatal(err)
+		}
 
 		if !cmp.Equal(want, got) {
+			t.Fatalf("want: %#v, got: %#v", want, got)
+		}
+	})
+
+	t.Run("should fail", func(t *testing.T) {
+		want := utf8.RuneError
+		got, err := Caesar("漢字", -1)
+
+		if err == nil {
 			t.Fatalf("want: %#v, got: %#v", want, got)
 		}
 	})
@@ -38,6 +55,19 @@ func TestCaesarOne(t *testing.T) {
 
 		if !cmp.Equal(want, got) {
 			t.Fatalf("want: %#v, got: %#v", want, got)
+		}
+	})
+
+	t.Run("should 1 forwarder hiragana", func(t *testing.T) {
+		want := 'あ'
+		got, err := caesarOne(Hiragana.Chars, 'ん', 1)
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if !cmp.Equal(want, got) {
+			t.Fatalf("want: %c, got: %c", want, got)
 		}
 	})
 
@@ -59,6 +89,26 @@ func TestCaesarOne(t *testing.T) {
 		got, err := caesarOne(Alphabet.Chars, 'A', -1)
 
 		if err == nil {
+			t.Fatalf("want: %#v, got: %#v", want, got)
+		}
+	})
+}
+
+func TestClassify(t *testing.T) {
+	t.Run("should classify for alphabet", func(t *testing.T) {
+		want := Alphabet
+		got := classify('a')
+
+		if !cmp.Equal(want, got) {
+			t.Fatalf("want: %#v, got: %#v", want, got)
+		}
+	})
+
+	t.Run("should not for kanji", func(t *testing.T) {
+		want := Undefined
+		got := classify('心')
+
+		if !cmp.Equal(want, got) {
 			t.Fatalf("want: %#v, got: %#v", want, got)
 		}
 	})

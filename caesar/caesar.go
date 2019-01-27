@@ -56,20 +56,15 @@ var KatakanaHandakuten = Charset{
 	KatakanaHandakutenType,
 }
 
-//Number             = "0123456789"
-//Alphabet           = "abcdefghijklmnopqrstuvwxyz"
-//EmAlphabet         = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-//Hiragana           = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん"
-//HiraganaDakuten    = "がぎぐげござじずぜぞだぢづでどばびぶべぼ"
-//HiraganaHandakuten = "ぱぴぷぺぽ"
-//Katakana           = "アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン"
-//KatakanaDakuten    = "ガギグゲゴザジズゼゾダヂヅデドバビブベボ"
-//KatakanaHandakuten = "パピプペポ"
+var Undefined = Charset{
+	"",
+	UndefinedType,
+}
 
 type CharType int
 
 const (
-	Undefined CharType = iota
+	UndefinedType CharType = iota
 	NumberType
 	AlphabetType
 	EmAlphabetType
@@ -83,8 +78,27 @@ const (
 
 const Komoji = "ぁぃぅぇぉっゃゅょァィゥェォッャュョ"
 
+func Caesar(s string, offset int) (string, error) {
+	normal := normalize(s)
+	result := make([]rune, utf8.RuneCountInString(normal))
+	var err error
+
+	i := 0
+	for _, r := range normal {
+		charset := classify(r)
+		result[i], err = caesarOne(charset.Chars, r, offset)
+		if err != nil {
+			return "", err
+		}
+		i++
+	}
+
+	return string(result), nil
+}
+
 func caesarOne(s string, substr rune, offset int) (rune, error) {
-	index := strings.IndexRune(s, substr)
+	index := runeIndex(s, substr)
+
 	if index == -1 {
 		return utf8.RuneError, fmt.Errorf("%c is not found in %v", substr, s)
 	}
@@ -94,7 +108,7 @@ func caesarOne(s string, substr rune, offset int) (rune, error) {
 	return []rune(s)[index], nil
 }
 
-func classify(r rune) CharType {
+func classify(r rune) Charset {
 	charsets := []Charset{
 		Alphabet, Number, EmAlphabet,
 		Hiragana, HiraganaDakuten, HiraganaHandakuten,
@@ -102,7 +116,7 @@ func classify(r rune) CharType {
 	}
 	for _, c := range charsets {
 		if strings.ContainsRune(c.Chars, r) {
-			return c.Type
+			return c
 		}
 	}
 	return Undefined
@@ -144,4 +158,14 @@ func validate(str string) error {
 		return fmt.Errorf("not supported literal: %c", r)
 	}
 	return nil
+}
+
+func runeIndex(s string, substr rune) int {
+	runes := []rune(s)
+	for i, r := range runes {
+		if r == substr {
+			return i
+		}
+	}
+	return -1
 }
