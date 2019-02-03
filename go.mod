@@ -1,4 +1,4 @@
-module mystery
+module github.com/kontotto/mystery
 
 require (
 	github.com/golang/protobuf v1.2.1-0.20181127190454-8d0c54c12466
